@@ -3,27 +3,24 @@
 #include <fstream>
 #include <algorithm>
 #include <iterator>
+#include <cmath>
+#include <vec2.h>
 using namespace std;
 
 #define byte unsigned char
 
 void write_ppm(int const width, int const height, vector<vector<byte>> bytes)
 {
-	fstream output{"output.ppm", ios_base::out | ios_base::binary};
-	// From: https://netpbm.sourceforge.net/doc/ppm.html
+	fstream output{"perlin.ppm", ios_base::out};
 	output << "P6" << '\n';
 	output << width << ' ' << height << '\n';
 	output << 255 << '\n';
 
-	for(size_t i{}; i < bytes.size(); ++i)
-	{
-		for(size_t j{}; j < bytes.at(i).size(); j += 3)
-		{
-			output << bytes.at(i).at(j)
-				<< bytes.at(i).at(j+1)
-				<< bytes.at(i).at(j+2);
-		}
-	}
+	for_each(bytes.begin(), bytes.end(),
+			[&output](vector<byte> const& b)
+			{
+				copy(b.begin(), b.end(), ostream_iterator<byte>(output));
+			});
 }
 
 int main()
@@ -36,8 +33,10 @@ int main()
 		{
 			bytes.at(i).push_back(j);
 			bytes.at(i).push_back(i);
-			bytes.at(i).push_back(255 - j);
+			bytes.at(i).push_back(255-j);
 		}
 	}
 	write_ppm(256, 256, bytes);
+
+	Vec2 v1{1.5f, 2.7f};
 }
