@@ -1,6 +1,6 @@
 # Compiler and flags
 CXX = g++
-CXXFLAGS = -std=c++17 -O2 -Wall -Wextra -Werror -Weffc++ -pedantic -Wno-deprecated-declarations 
+CXXFLAGS = -std=c++17 -O3 -Wall -Wextra -Werror -Weffc++ -pedantic -Wno-deprecated-declarations 
 
 # Directories
 INCLUDE_DIR = include

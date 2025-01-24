@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <iterator>
 #include <cmath>
-#include <vec2.h>
+#include "perlin.h"
 using namespace std;
 
 #define byte unsigned char
@@ -37,4 +37,7 @@ int main()
 		}
 	}
 	write_ppm(256, 256, bytes);
+
+	Perlin p{};
+	p.init(5, 5);
 }
