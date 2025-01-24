@@ -37,6 +37,4 @@ int main()
 		}
 	}
 	write_ppm(256, 256, bytes);
-
-	Vec2 v1{1.5f, 2.7f};
 }
