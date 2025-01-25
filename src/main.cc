@@ -38,6 +38,7 @@ int main()
 	}
 	write_ppm(256, 256, bytes);
 
-	Perlin p{5, 5, 256, 256};
+	Perlin p{4, 4, 256, 256};
 	p.init();
+	p.noise_2d(32, 32);
 }

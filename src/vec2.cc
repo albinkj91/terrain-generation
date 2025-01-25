@@ -20,6 +20,15 @@ void Vec2::normalize()
 	*this / mag();
 }
 
+float Vec2::get_x() const
+{
+	return x;
+}
+float Vec2::get_y() const
+{
+	return y;
+}
+
 Vec2 Vec2::operator-(Vec2 const& rhs) const
 {
 	return Vec2{x - rhs.x, y - rhs.y};

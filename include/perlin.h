@@ -16,6 +16,8 @@ private:
 	int grid_height;
 	int point_width;
 	int point_height;
+
+	float smoothstep(float const x) const;
 };
 
 #endif
