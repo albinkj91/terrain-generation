@@ -11,6 +11,7 @@ public:
 	float dot(Vec2 const& v) const;
 	float mag() const;
 	void normalize();
+	Vec2 operator-(Vec2 const& rhs) const;
 	Vec2 operator/(float const value) const;
 
 	friend std::ostream& operator<<(std::ostream & os, Vec2 const& obj);

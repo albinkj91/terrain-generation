@@ -3,11 +3,11 @@
 #include <iostream>
 #include <algorithm>
 
-Perlin::Perlin()
-	:grid{}
+Perlin::Perlin(int const grid_w, int const grid_h, int const point_w, int const point_h)
+	:grid{}, grid_width{grid_w}, grid_height{grid_h}, point_width{point_w}, point_height{point_h}
 { }
 
-void Perlin::init(int const grid_width, int const grid_height)
+void Perlin::init()
 {
 	std::random_device rand{};
 	std::mt19937 gen{rand()};
@@ -19,22 +19,14 @@ void Perlin::init(int const grid_width, int const grid_height)
 		for(int j{}; j < grid_width; ++j)
 		{
 			grid.at(i).push_back(Vec2{static_cast<float>(dis(gen)), static_cast<float>(dis(gen))});
+			grid.at(i).at(j).normalize();
 		}
 	}
-
-	for(int i{}; i < grid_height; ++i)
-	{
-		grid.push_back(std::vector<Vec2>{});
-		for(int j{}; j < grid_width; ++j)
-		{
-			std::cout << grid.at(i).at(j) << ' ';
-		}
-		std::cout << '\n';
-	}
-	std::cout << std::endl;
 }
 
-std::vector<std::vector<Vec2>> Perlin::get_grid() const
+float Perlin::noise_2d(int const x, int const y) const
 {
-	return grid;
+	int grid_x{x / grid_width};
+	int grid_y{y / grid_height};
+	return grid_x+grid_y;
 }

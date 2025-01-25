@@ -7,11 +7,15 @@
 class Perlin
 {
 public:
-	Perlin();
-	void init(int const grid_width, int const grid_height);
-	float get(int const x, int const y) const;
+	Perlin(int const grid_w, int const grid_h, int const point_w, int const point_h);
+	void init();
+	float noise_2d(int const x, int const y) const;
 private:
 	std::vector<std::vector<Vec2>> grid;
+	int grid_width;
+	int grid_height;
+	int point_width;
+	int point_height;
 };
 
 #endif

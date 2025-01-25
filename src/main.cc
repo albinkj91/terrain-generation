@@ -38,6 +38,6 @@ int main()
 	}
 	write_ppm(256, 256, bytes);
 
-	Perlin p{};
-	p.init(5, 5);
+	Perlin p{5, 5, 256, 256};
+	p.init();
 }

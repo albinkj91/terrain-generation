@@ -7,7 +7,7 @@ Vec2::Vec2(float const x, float const y)
 
 float Vec2::dot(Vec2 const& v) const
 {
-	return this->x*v.x + this->y*v.y;
+	return x*v.x + y*v.y;
 }
 
 float Vec2::mag() const
@@ -17,12 +17,17 @@ float Vec2::mag() const
 
 void Vec2::normalize()
 {
-	*this/mag();
+	*this / mag();
+}
+
+Vec2 Vec2::operator-(Vec2 const& rhs) const
+{
+	return Vec2{x - rhs.x, y - rhs.y};
 }
 
 Vec2 Vec2::operator/(float const value) const
 {
-	return Vec2{this->x/value, this->y/value};
+	return Vec2{x / value, y / value};
 }
 
 std::ostream& operator<<(std::ostream & os, Vec2 const& obj)
