@@ -25,20 +25,19 @@ void write_ppm(int const width, int const height, vector<vector<byte>> bytes)
 
 int main()
 {
+	Perlin p{16, 16, 512, 512};
+	p.init();
 	vector<vector<byte>> bytes{};
-	for(int i{}; i < 256; ++i)
+	for(int i{}; i < 512; ++i)
 	{
 		bytes.push_back(vector<byte>{});
-		for(int j{}; j < 256; ++j)
+		for(int j{}; j < 512; ++j)
 		{
-			bytes.at(i).push_back(j);
-			bytes.at(i).push_back(i);
-			bytes.at(i).push_back(255-j);
+			byte val{static_cast<byte>(p.noise_2d(j, i) * 255)};
+			bytes.at(i).push_back(val);
+			bytes.at(i).push_back(val);
+			bytes.at(i).push_back(val);
 		}
 	}
-	write_ppm(256, 256, bytes);
-
-	Perlin p{4, 4, 256, 256};
-	p.init();
-	p.noise_2d(32, 32);
+	write_ppm(512, 512, bytes);
 }

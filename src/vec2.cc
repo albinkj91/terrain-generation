@@ -17,7 +17,7 @@ float Vec2::mag() const
 
 void Vec2::normalize()
 {
-	*this / mag();
+	*this = *this / mag();
 }
 
 float Vec2::get_x() const
