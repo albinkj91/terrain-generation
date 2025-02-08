@@ -19,7 +19,6 @@ void Perlin::init()
 		for(int j{}; j <= grid_width; ++j)
 		{
 			grid.at(i).push_back(Vec2{static_cast<float>(dis(gen)), static_cast<float>(dis(gen))});
-			//grid.at(i).at(j).normalize();
 		}
 	}
 }
@@ -56,9 +55,9 @@ float Perlin::noise_2d(int const x, int const y) const
 
 	lerp_3 += 0.5f;
 
-	if(lerp_3 > 1.0f)
+	if(lerp_3 >= 1.0f)
 		return 1.0f;
-	if(lerp_3 < 0.0f)
+	if(lerp_3 <= 0.0f)
 		return 0.0f;
 	return lerp_3;
 }
