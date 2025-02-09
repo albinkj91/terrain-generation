@@ -40,8 +40,6 @@ int main()
 	p5.init();
 
 	vector<vector<byte>> bytes{};
-	float max{-1000.0f};
-	float min{1000.0f};
 	for(int i{}; i < img_width; ++i)
 	{
 		bytes.push_back(vector<byte>{});
@@ -51,14 +49,9 @@ int main()
 				p2.noise_2d(j, i)/2.0f +
 				p3.noise_2d(j, i)/4.0f +
 				p4.noise_2d(j, i)/8.0f +
-				p5.noise_2d(j, i)/16.0f
+				p5.noise_2d(j, i)/16.0f -
+				0.5f
 			};
-
-			added_noise = (added_noise - 0.5f);
-			if(added_noise > max)
-				max = added_noise;
-			if(added_noise < min)
-				min = added_noise;
 
 			byte val{static_cast<byte>(added_noise * 255.0f)};
 			bytes.at(i).push_back(val);
@@ -67,5 +60,4 @@ int main()
 		}
 	}
 	write_ppm(img_width, img_width, bytes);
-	cout << "Max: " << max << " Min: " << min << endl;
 }
