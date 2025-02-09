@@ -67,6 +67,6 @@ float Perlin::smoothstep(float const x) const
 	if(x <= 0.0f)
 		return 0.0f;
 	else if(x >= 0.0f && x <= 1.0f)
-		return 3.0f*x*x - 2.0f*x*x*x;
+		return 6.0f*x*x*x*x*x - 15.0f*x*x*x*x + 10*x*x*x;
 	return 1.0f;
 }
