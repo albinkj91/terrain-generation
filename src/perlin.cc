@@ -1,22 +1,21 @@
 #include "perlin.h"
 #include <random>
 #include <algorithm>
-#include <iostream>
 
-Perlin::Perlin(int const grid_w, int const grid_h, int const point_w, int const point_h)
-	:grid{}, grid_width{grid_w}, grid_height{grid_h}, point_width{point_w}, point_height{point_h}
+Perlin::Perlin(int const grid_w, int const grid_h, int const img_w, int const img_h)
+	:grid{}, grid_w{grid_w}, grid_h{grid_h}, img_w{img_w}, img_h{img_h}
 { }
 
 void Perlin::init()
 {
 	std::random_device rand{};
 	std::mt19937 gen{rand()};
-	std::uniform_real_distribution<> dis{-1.0, 1.0};
+	std::uniform_real_distribution<> dis{-1.0f, 1.0f};
 
-	for(int i{}; i <= grid_height; ++i)
+	for(int i{}; i <= grid_h; ++i)
 	{
 		grid.push_back(std::vector<Vec2>{});
-		for(int j{}; j <= grid_width; ++j)
+		for(int j{}; j <= grid_w; ++j)
 		{
 			grid.at(i).push_back(Vec2{static_cast<float>(dis(gen)), static_cast<float>(dis(gen))});
 		}
@@ -25,8 +24,8 @@ void Perlin::init()
 
 float Perlin::noise_2d(int const x, int const y) const
 {
-	int cell_w{point_width / grid_width};
-	int cell_h{point_height / grid_height};
+	int cell_w{img_w/ grid_w};
+	int cell_h{img_h/ grid_h};
 
 	int rel_x{x % cell_w};
 	int rel_y{y % cell_h};
@@ -53,12 +52,7 @@ float Perlin::noise_2d(int const x, int const y) const
 	float lerp_2{dot_3 + smoothstep(point.get_x()) * (dot_4-dot_3)};
 	float lerp_3{lerp_1 + smoothstep(point.get_y()) * (lerp_2-lerp_1)};
 
-	lerp_3 += 0.5f;
-
-	if(lerp_3 >= 1.0f)
-		return 1.0f;
-	if(lerp_3 <= 0.0f)
-		return 0.0f;
+	lerp_3 = lerp_3 / 2.0f + 0.5f;
 	return lerp_3;
 }
 
