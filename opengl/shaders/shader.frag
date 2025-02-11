@@ -1,9 +1,9 @@
 #version 330
-in vec2 textOut;
+//in vec2 textOut;
 //in vec3 normalOut;
 
 out vec4 outputColor;
-uniform sampler2D sampleTex;
+//uniform sampler2D sampleTex;
 
 void main()
 {

@@ -114,62 +114,59 @@ void InitializeProgram()
 	for_each(shaderList.begin(), shaderList.end(), glDeleteShader);
 }
 
-vector<float> generate_terrain(unsigned char* data)
+vector<float> generate_terrain()//unsigned char* data)
 {
 	vector<float> vertices{
-		-0.5, -0.5, -0.5,
-		0.5, -0.5, -0.5,
-		0.0, 0.5, -0.5
+		-0.5, -0.5, 0.0,
+		0.5, -0.5, 0.0,
+		0.0, 0.5, 0.0
 	};
 	return vertices;
 }
 
 void InitializeVertexBuffer(vector<float> const& vertices)
 {
+	glGenVertexArrays(1, &vao);
 	glGenBuffers(1, &vbo);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(GLuint), &vertices, GL_STATIC_DRAW);
+
+	glBindVertexArray(vao);
+	glVertexAttribPointer(glGetAttribLocation(shader_program, "position"), 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(glGetAttribLocation(shader_program, "position"));
+
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void init()
 {
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
 	InitializeProgram();
 	glUseProgram(shader_program);
-	glEnable(GL_CULL_FACE);
-	glEnable(GL_DEPTH_TEST);
+	//glEnable(GL_CULL_FACE);
+	//glEnable(GL_DEPTH_TEST);
 
 	// Create texture reference
-	unsigned int texture{};
-	glGenTextures(1, &texture);
+	//unsigned int texture{};
+	//glGenTextures(1, &texture);
 
-	// Load image
-	int width{}, height{}, nrChannels{};
-	unsigned char *data = stbi_load("perlin/perlin.ppm", &width, &height, &nrChannels, 0);
-	vector<float> vertices{generate_terrain(data)};
+	//// Load image
+	//int width{}, height{}, nrChannels{};
+	//unsigned char *data = stbi_load("perlin/perlin.ppm", &width, &height, &nrChannels, 0);
+	vector<float> vertices{generate_terrain()};//data)};
 	InitializeVertexBuffer(vertices);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-	glEnableVertexAttribArray(0);
+	//glBindTexture(GL_TEXTURE_2D, texture);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-
-	stbi_image_free(data);
+	//stbi_image_free(data);
 }
 
 void display()
 {
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	cout << "here1" << endl;
-	cout << "here2" << endl;
-
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);// | GL_DEPTH_BUFFER_BIT);
 	glDrawArrays(GL_TRIANGLES, 0, 3);
-	cout << "here3" << endl;
 }
 
 int main()
@@ -196,15 +193,18 @@ int main()
 	gladLoadGL();
 	init();
 
-	float aspect_ratio{static_cast<float>(window_width) / static_cast<float>(window_height)};
-	glm::mat4 proj{glm::perspective(glm::radians(45.0f), aspect_ratio, 0.1f, 100.0f)};
+	//float rot_angle{0.01f};
+	//float aspect_ratio{static_cast<float>(window_width) / static_cast<float>(window_height)};
+	//glm::mat4 proj{glm::perspective(glm::radians(45.0f), aspect_ratio, 0.1f, 100.0f)};
+	//glm::mat4 translate{glm::translate(glm::mat4{1.0f}, glm::vec3(0.0f, -1.0f, -6.5f))};
+	//glm::mat4 rot_y{glm::rotate(glm::mat4{1.0f}, rot_angle, glm::vec3{0.0, 1.0, 0.0})};
+
+	//glm::mat4 mvp_matrix{proj * translate};
+	//glUniformMatrix4fv(glGetUniformLocation(shader_program, "mat_mvp"),
+	//		1, GL_FALSE, glm::value_ptr(mvp_matrix));
 
 	while (!glfwWindowShouldClose(window))
 	{
-		glm::mat4 mvp_matrix{proj};
-		glUniformMatrix4fv(glGetUniformLocation(shader_program, "mat_mvp"),
-				1, GL_FALSE, glm::value_ptr(mvp_matrix));
-
 		display();
 		glfwSwapBuffers(window);
 		glfwPollEvents();
