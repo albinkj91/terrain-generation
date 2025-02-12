@@ -9,15 +9,20 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <sstream>
+#include <iterator>
 #include "stb_image.h"
 using namespace std;
 
+#define byte unsigned char
 #define window_width 800
 #define window_height 800
 
 GLuint shader_program;
 GLuint vbo;
 GLuint vao;
+
+vector<float> vertices{};
 
 string load_shader(string const& filename)
 {
@@ -114,14 +119,61 @@ void InitializeProgram()
 	for_each(shaderList.begin(), shaderList.end(), glDeleteShader);
 }
 
-vector<float> generate_terrain()//unsigned char* data)
+vector<float> read_ppm(string const& file)
 {
-	vector<float> vertices{
-		-0.5, -0.5, 0.0,
-		0.5, -0.5, 0.0,
-		0.0, 0.5, 0.0
-	};
-	return vertices;
+	vector<float> data{};
+	fstream input{file, ios_base::in};
+	string temp{};
+	getline(input, temp);
+	getline(input, temp);
+	getline(input, temp);
+
+	while(input >> temp)
+	{
+		byte in{};
+		istringstream iss{temp};
+		while(iss >> in)
+			data.push_back(static_cast<float>(in));
+	}
+	return data;
+}
+
+vector<float> generate_terrain()
+{
+	vector<float> height_map{read_ppm("../perlin/perlin.ppm")};
+	vector<float> vert{};
+	int width{512};
+	for(int i{}; i < width; ++i)
+	{
+		for(int j{}; j < width; ++j)
+		{
+			float y{height_map.at(i * width + j)};
+			vert.push_back(0.5 + j - (width-1)/2.0); //x
+			vert.push_back(y); //y
+			vert.push_back(0.5 + i - (width-1)/2.0); //z
+
+			vert.push_back(0.5 + j - (width-1)/2.0); //x
+			vert.push_back(y); //y
+			vert.push_back(-0.5 + i - (width-1)/2.0); //z
+
+			vert.push_back(-0.5 + j - (width-1)/2.0); //x
+			vert.push_back(y); //y
+			vert.push_back(-0.5 + i - (width-1)/2.0); //z
+
+			vert.push_back(0.5 + j - (width-1)/2.0); //x
+			vert.push_back(y); //y
+			vert.push_back(0.5 + i - (width-1)/2.0); //z
+
+			vert.push_back(-0.5 + j - (width-1)/2.0); //x
+			vert.push_back(y); //y
+			vert.push_back(-0.5 + i - (width-1)/2.0); //z
+
+			vert.push_back(-0.5 + j - (width-1)/2.0); //x
+			vert.push_back(y); //y
+			vert.push_back(0.5 + i - (width-1)/2.0); //z
+		}
+	}
+	return vert;
 }
 
 void InitializeVertexBuffer(vector<float> const& vertices)
@@ -130,7 +182,7 @@ void InitializeVertexBuffer(vector<float> const& vertices)
 	glGenBuffers(1, &vbo);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(GLuint), &vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(GLuint), vertices.data(), GL_STATIC_DRAW);
 
 	glBindVertexArray(vao);
 	glVertexAttribPointer(glGetAttribLocation(shader_program, "position"), 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -139,34 +191,38 @@ void InitializeVertexBuffer(vector<float> const& vertices)
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
+void load_image(string const& file)
+{
+	// Create texture reference
+	unsigned int texture{};
+	glGenTextures(1, &texture);
+
+	//// Load image
+	int width{}, height{}, nrChannels{};
+	byte *data = stbi_load(file.data(), &width, &height, &nrChannels, 0);
+
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+
+	stbi_image_free(data);
+}
+
 void init()
 {
 	InitializeProgram();
 	glUseProgram(shader_program);
-	//glEnable(GL_CULL_FACE);
-	//glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_DEPTH_TEST);
 
-	// Create texture reference
-	//unsigned int texture{};
-	//glGenTextures(1, &texture);
-
-	//// Load image
-	//int width{}, height{}, nrChannels{};
-	//unsigned char *data = stbi_load("perlin/perlin.ppm", &width, &height, &nrChannels, 0);
-	vector<float> vertices{generate_terrain()};//data)};
+	vertices = generate_terrain();
 	InitializeVertexBuffer(vertices);
-
-	//glBindTexture(GL_TEXTURE_2D, texture);
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-
-	//stbi_image_free(data);
 }
 
 void display()
 {
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);// | GL_DEPTH_BUFFER_BIT);
-	glDrawArrays(GL_TRIANGLES, 0, 3);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glDrawArrays(GL_TRIANGLES, 0, vertices.size());
 }
 
 int main()
@@ -193,15 +249,13 @@ int main()
 	gladLoadGL();
 	init();
 
-	//float rot_angle{0.01f};
-	//float aspect_ratio{static_cast<float>(window_width) / static_cast<float>(window_height)};
-	//glm::mat4 proj{glm::perspective(glm::radians(45.0f), aspect_ratio, 0.1f, 100.0f)};
-	//glm::mat4 translate{glm::translate(glm::mat4{1.0f}, glm::vec3(0.0f, -1.0f, -6.5f))};
-	//glm::mat4 rot_y{glm::rotate(glm::mat4{1.0f}, rot_angle, glm::vec3{0.0, 1.0, 0.0})};
+	float aspect_ratio{static_cast<float>(window_width) / static_cast<float>(window_height)};
+	glm::mat4 proj{glm::perspective(glm::radians(45.0f), aspect_ratio, 0.1f, 1600.0f)};
+	glm::mat4 translate{glm::translate(glm::mat4{1.0f}, glm::vec3(0.0f, -300.0f, -1000.0f))};
 
-	//glm::mat4 mvp_matrix{proj * translate};
-	//glUniformMatrix4fv(glGetUniformLocation(shader_program, "mat_mvp"),
-	//		1, GL_FALSE, glm::value_ptr(mvp_matrix));
+	glm::mat4 mvp_matrix{proj * translate};
+	glUniformMatrix4fv(glGetUniformLocation(shader_program, "mat_mvp"),
+			1, GL_FALSE, glm::value_ptr(mvp_matrix));
 
 	while (!glfwWindowShouldClose(window))
 	{
