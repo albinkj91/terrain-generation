@@ -158,7 +158,7 @@ vector<float> generate_terrain()
 			vert.push_back(z1);
 
 			float y2{height_map.at(i * width + j+1)};
-			float x2{0.5f + x_offset};
+			float x2{x1};
 			float z2{-0.5f + z_offset};
 			vert.push_back(x2);
 			vert.push_back(y2);
@@ -166,7 +166,7 @@ vector<float> generate_terrain()
 
 			float y3{height_map.at(i * width + j)};
 			float x3{-0.5f + x_offset};
-			float z3{-0.5f + z_offset};
+			float z3{z2};
 			vert.push_back(x3);
 			vert.push_back(y3);
 			vert.push_back(z3);
@@ -175,16 +175,27 @@ vector<float> generate_terrain()
 			vert.push_back(y1);
 			vert.push_back(z1);
 
-			vert.push_back(-0.5f + x_offset);
+			vert.push_back(x3);
 			vert.push_back(y3);
-			vert.push_back(-0.5f + z_offset);
+			vert.push_back(z3);
 
 			float y4{height_map.at((i+1) * width + j)};
-			vert.push_back(-0.5f + x_offset);
+			float x4{-0.5f + x_offset};
+			vert.push_back(x4);
 			vert.push_back(y4);
-			vert.push_back(0.5f + z_offset);
+			vert.push_back(z1);
 
-			//float cross1{glm::vec3{x1, y, z1
+			glm::vec3 v1{x1, y1, z1};
+			glm::vec3 v2{x2, y2, z2};
+			glm::vec3 v3{x3, y3, z3};
+			glm::vec3 v4{x1, y1, z1};
+
+			glm::vec3 v1_3{v1 - v3};
+			glm::vec3 v4_3{v4 - v3};
+			glm::vec3 cross1{glm::cross(v1_3, v4_3)};
+
+			glm::vec3 v2_3{v2 - v3};
+			glm::vec3 cross2{glm::cross(v1_3, v2_3)};
 		}
 	}
 	return vert;
