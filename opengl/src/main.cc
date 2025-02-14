@@ -143,34 +143,48 @@ vector<float> generate_terrain()
 	vector<float> height_map{read_ppm("../perlin/perlin.ppm")};
 	vector<float> vert{};
 	int width{512};
-	for(int i{}; i < width; ++i)
+	for(int i{}; i < width - 1; ++i)
 	{
-		for(int j{}; j < width; ++j)
+		for(int j{}; j < width - 1; ++j)
 		{
-			float y{height_map.at(i * width + j)};
-			vert.push_back(0.5 + j - (width-1)/2.0); //x
-			vert.push_back(y); //y
-			vert.push_back(0.5 + i - (width-1)/2.0); //z
+			float x_offset{j - (width-1)/2.0f};
+			float z_offset{i - (width-1)/2.0f};
 
-			vert.push_back(0.5 + j - (width-1)/2.0); //x
-			vert.push_back(y); //y
-			vert.push_back(-0.5 + i - (width-1)/2.0); //z
+			float y1{height_map.at((i+1) * width + j+1)};
+			float x1{0.5f + x_offset};
+			float z1{0.5f + z_offset};
+			vert.push_back(x1);
+			vert.push_back(y1);
+			vert.push_back(z1);
 
-			vert.push_back(-0.5 + j - (width-1)/2.0); //x
-			vert.push_back(y); //y
-			vert.push_back(-0.5 + i - (width-1)/2.0); //z
+			float y2{height_map.at(i * width + j+1)};
+			float x2{0.5f + x_offset};
+			float z2{-0.5f + z_offset};
+			vert.push_back(x2);
+			vert.push_back(y2);
+			vert.push_back(z2);
 
-			vert.push_back(0.5 + j - (width-1)/2.0); //x
-			vert.push_back(y); //y
-			vert.push_back(0.5 + i - (width-1)/2.0); //z
+			float y3{height_map.at(i * width + j)};
+			float x3{-0.5f + x_offset};
+			float z3{-0.5f + z_offset};
+			vert.push_back(x3);
+			vert.push_back(y3);
+			vert.push_back(z3);
 
-			vert.push_back(-0.5 + j - (width-1)/2.0); //x
-			vert.push_back(y); //y
-			vert.push_back(-0.5 + i - (width-1)/2.0); //z
+			vert.push_back(x1);
+			vert.push_back(y1);
+			vert.push_back(z1);
 
-			vert.push_back(-0.5 + j - (width-1)/2.0); //x
-			vert.push_back(y); //y
-			vert.push_back(0.5 + i - (width-1)/2.0); //z
+			vert.push_back(-0.5f + x_offset);
+			vert.push_back(y3);
+			vert.push_back(-0.5f + z_offset);
+
+			float y4{height_map.at((i+1) * width + j)};
+			vert.push_back(-0.5f + x_offset);
+			vert.push_back(y4);
+			vert.push_back(0.5f + z_offset);
+
+			//float cross1{glm::vec3{x1, y, z1
 		}
 	}
 	return vert;

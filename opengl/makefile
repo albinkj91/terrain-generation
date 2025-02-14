@@ -9,7 +9,7 @@ SRC = src
 IDIR := include
 
 # all object files will be put here
-OBJDIR := objdir
+OBJDIR := obj
 
 # Compiler (g++)
 CCC = g++
