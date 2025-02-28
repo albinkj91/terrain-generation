@@ -19,10 +19,12 @@ using namespace std;
 #define window_height 800
 
 GLuint shader_program;
-GLuint vbo;
+GLuint vbo_pos;
+GLuint vbo_norm;
 GLuint vao;
 
 vector<float> vertices{};
+vector<float> normals{};
 
 string load_shader(string const& filename)
 {
@@ -143,12 +145,12 @@ vector<float> generate_terrain()
 	vector<float> height_map{read_ppm("../perlin/perlin.ppm")};
 	vector<float> vert{};
 	int width{512};
-	for(int i{}; i < width - 1; ++i)
+	for(int i{}; i < width; ++i)
 	{
-		for(int j{}; j < width - 1; ++j)
+		for(int j{}; j < width; ++j)
 		{
-			float x_offset{j - (width-1)/2.0f};
-			float z_offset{i - (width-1)/2.0f};
+			float x_offset{j - (width)/2.0f};
+			float z_offset{i - (width)/2.0f};
 
 			float y1{height_map.at((i+1) * width + j+1)};
 			float x1{0.5f + x_offset};
@@ -188,14 +190,41 @@ vector<float> generate_terrain()
 			glm::vec3 v1{x1, y1, z1};
 			glm::vec3 v2{x2, y2, z2};
 			glm::vec3 v3{x3, y3, z3};
-			glm::vec3 v4{x1, y1, z1};
+			glm::vec3 v4{x4, y4, z1};
 
 			glm::vec3 v1_3{v1 - v3};
 			glm::vec3 v4_3{v4 - v3};
+
 			glm::vec3 cross1{glm::cross(v1_3, v4_3)};
+			cross1 = normalize(cross1);
+
+			normals.push_back(cross1.x);
+			normals.push_back(cross1.y);
+			normals.push_back(cross1.z);
+
+			normals.push_back(cross1.x);
+			normals.push_back(cross1.y);
+			normals.push_back(cross1.z);
+
+			normals.push_back(cross1.x);
+			normals.push_back(cross1.y);
+			normals.push_back(cross1.z);
 
 			glm::vec3 v2_3{v2 - v3};
 			glm::vec3 cross2{glm::cross(v1_3, v2_3)};
+			cross2 = normalize(cross2);
+
+			normals.push_back(cross2.x);
+			normals.push_back(cross2.y);
+			normals.push_back(cross2.z);
+
+			normals.push_back(cross2.x);
+			normals.push_back(cross2.y);
+			normals.push_back(cross2.z);
+
+			normals.push_back(cross2.x);
+			normals.push_back(cross2.y);
+			normals.push_back(cross2.z);
 		}
 	}
 	return vert;
@@ -204,14 +233,28 @@ vector<float> generate_terrain()
 void InitializeVertexBuffer(vector<float> const& vertices)
 {
 	glGenVertexArrays(1, &vao);
-	glGenBuffers(1, &vbo);
+	glGenBuffers(1, &vbo_pos);
 
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_pos);
 	glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(GLuint), vertices.data(), GL_STATIC_DRAW);
 
 	glBindVertexArray(vao);
 	glVertexAttribPointer(glGetAttribLocation(shader_program, "position"), 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(glGetAttribLocation(shader_program, "position"));
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void InitializeNormalBuffer(vector<float> const& normals)
+{
+	glGenBuffers(1, &vbo_norm);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_norm);
+	glBufferData(GL_ARRAY_BUFFER, normals.size()*sizeof(GLuint), normals.data(), GL_STATIC_DRAW);
+
+	glBindVertexArray(vao);
+	glVertexAttribPointer(glGetAttribLocation(shader_program, "normal"), 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(glGetAttribLocation(shader_program, "normal"));
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
@@ -241,13 +284,14 @@ void init()
 
 	vertices = generate_terrain();
 	InitializeVertexBuffer(vertices);
+	InitializeNormalBuffer(normals);
 }
 
 void display()
 {
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+	glDrawArrays(GL_TRIANGLES, 0, vertices.size()/3);
 }
 
 int main()
@@ -276,7 +320,7 @@ int main()
 
 	float aspect_ratio{static_cast<float>(window_width) / static_cast<float>(window_height)};
 	glm::mat4 proj{glm::perspective(glm::radians(45.0f), aspect_ratio, 0.1f, 1600.0f)};
-	glm::mat4 translate{glm::translate(glm::mat4{1.0f}, glm::vec3(0.0f, -300.0f, -1000.0f))};
+	glm::mat4 translate{glm::translate(glm::mat4{1.0f}, glm::vec3(0.0f, -100.0f, -500.0f))};
 
 	glm::mat4 mvp_matrix{proj * translate};
 	glUniformMatrix4fv(glGetUniformLocation(shader_program, "mat_mvp"),
