@@ -143,31 +143,33 @@ vector<float> read_ppm(string const& file)
 vector<float> generate_terrain()
 {
 	vector<float> height_map{read_ppm("../perlin/perlin.ppm")};
+	cout << height_map.size() << endl;
 	vector<float> vert{};
 	int width{512};
-	for(int i{}; i < width; ++i)
+	for(int i{}; i < width - 1; ++i)
 	{
-		for(int j{}; j < width; ++j)
+		for(int j{}; j < width - 1; ++j)
 		{
+			// Offset values so that center of the terrain is at the origin (0, 0, 0)
 			float x_offset{j - (width)/2.0f};
 			float z_offset{i - (width)/2.0f};
 
-			float y1{height_map.at((i+1) * width + j+1)};
-			float x1{0.5f + x_offset};
-			float z1{0.5f + z_offset};
+			float x1{-0.5f + x_offset};
+			float y1{height_map.at(i * width + j)};
+			float z1{-0.5f + z_offset};
 			vert.push_back(x1);
 			vert.push_back(y1);
 			vert.push_back(z1);
 
-			float y2{height_map.at(i * width + j+1)};
 			float x2{x1};
-			float z2{-0.5f + z_offset};
+			float y2{height_map.at((i+1) * width + j)};
+			float z2{0.5f + z_offset};
 			vert.push_back(x2);
 			vert.push_back(y2);
 			vert.push_back(z2);
 
-			float y3{height_map.at(i * width + j)};
-			float x3{-0.5f + x_offset};
+			float x3{0.5f + x_offset};
+			float y3{height_map.at((i+1) * width + j+1)};
 			float z3{z2};
 			vert.push_back(x3);
 			vert.push_back(y3);
@@ -181,21 +183,22 @@ vector<float> generate_terrain()
 			vert.push_back(y3);
 			vert.push_back(z3);
 
-			float y4{height_map.at((i+1) * width + j)};
-			float x4{-0.5f + x_offset};
+			float x4{x3};
+			float y4{height_map.at(i * width + j+1)};
+			float z4{z1};
 			vert.push_back(x4);
 			vert.push_back(y4);
-			vert.push_back(z1);
+			vert.push_back(z4);
 
 			glm::vec3 v1{x1, y1, z1};
 			glm::vec3 v2{x2, y2, z2};
 			glm::vec3 v3{x3, y3, z3};
-			glm::vec3 v4{x4, y4, z1};
+			glm::vec3 v4{x4, y4, z4};
 
-			glm::vec3 v1_3{v1 - v3};
-			glm::vec3 v4_3{v4 - v3};
+			glm::vec3 v3_1{v3 - v1};
+			glm::vec3 v2_1{v2 - v1};
 
-			glm::vec3 cross1{glm::cross(v1_3, v4_3)};
+			glm::vec3 cross1{glm::cross(v3_1, v2_1)};
 			cross1 = normalize(cross1);
 
 			normals.push_back(cross1.x);
@@ -210,8 +213,8 @@ vector<float> generate_terrain()
 			normals.push_back(cross1.y);
 			normals.push_back(cross1.z);
 
-			glm::vec3 v2_3{v2 - v3};
-			glm::vec3 cross2{glm::cross(v1_3, v2_3)};
+			glm::vec3 v4_1{v4 - v1};
+			glm::vec3 cross2{glm::cross(v4_1, v3_1)};
 			cross2 = normalize(cross2);
 
 			normals.push_back(cross2.x);
@@ -236,7 +239,7 @@ void InitializeVertexBuffer(vector<float> const& vertices)
 	glGenBuffers(1, &vbo_pos);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo_pos);
-	glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(GLuint), vertices.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(float), vertices.data(), GL_STATIC_DRAW);
 
 	glBindVertexArray(vao);
 	glVertexAttribPointer(glGetAttribLocation(shader_program, "position"), 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -250,7 +253,7 @@ void InitializeNormalBuffer(vector<float> const& normals)
 	glGenBuffers(1, &vbo_norm);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo_norm);
-	glBufferData(GL_ARRAY_BUFFER, normals.size()*sizeof(GLuint), normals.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, normals.size()*sizeof(float), normals.data(), GL_STATIC_DRAW);
 
 	glBindVertexArray(vao);
 	glVertexAttribPointer(glGetAttribLocation(shader_program, "normal"), 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -320,9 +323,10 @@ int main()
 
 	float aspect_ratio{static_cast<float>(window_width) / static_cast<float>(window_height)};
 	glm::mat4 proj{glm::perspective(glm::radians(45.0f), aspect_ratio, 0.1f, 1600.0f)};
-	glm::mat4 translate{glm::translate(glm::mat4{1.0f}, glm::vec3(0.0f, -100.0f, -500.0f))};
+	glm::mat4 translate{glm::translate(glm::mat4{1.0f}, glm::vec3(0.0f, -100.0f, -400.0f))};
+	glm::mat4 rot_x{glm::rotate(glm::mat4{1.0f}, 0.8f, glm::vec3{1.0f, 0.0f, 0.0f})};
 
-	glm::mat4 mvp_matrix{proj * translate};
+	glm::mat4 mvp_matrix{proj * translate * rot_x};
 	glUniformMatrix4fv(glGetUniformLocation(shader_program, "mat_mvp"),
 			1, GL_FALSE, glm::value_ptr(mvp_matrix));
 
