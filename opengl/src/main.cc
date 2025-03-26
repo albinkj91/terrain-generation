@@ -130,12 +130,11 @@ vector<float> read_ppm(string const& file)
 	getline(input, temp);
 	getline(input, temp);
 
-	while(input >> temp)
+	float in{};
+	while(input >> in)
 	{
-		byte in{};
-		istringstream iss{temp};
-		while(iss >> in)
-			data.push_back(static_cast<float>(in));
+		data.push_back(in);
+		input >> in >> in;
 	}
 	return data;
 }
@@ -143,33 +142,34 @@ vector<float> read_ppm(string const& file)
 vector<float> generate_terrain()
 {
 	vector<float> height_map{read_ppm("../perlin/perlin.ppm")};
-	cout << height_map.size() << endl;
+
 	vector<float> vert{};
 	int width{512};
-	for(int i{}; i < width - 1; ++i)
+	float scale{200.0};
+	for(int i{}; i < width-1; ++i)
 	{
-		for(int j{}; j < width - 1; ++j)
+		for(int j{}; j < width-1; ++j)
 		{
-			// Offset values so that center of the terrain is at the origin (0, 0, 0)
+			// Offset values so that center of the terrain is at the origin (0, 0, 0) in model space
 			float x_offset{j - (width)/2.0f};
 			float z_offset{i - (width)/2.0f};
 
 			float x1{-0.5f + x_offset};
-			float y1{height_map.at(i * width + j)};
+			float y1{height_map.at(i * width + j) * scale};
 			float z1{-0.5f + z_offset};
 			vert.push_back(x1);
 			vert.push_back(y1);
 			vert.push_back(z1);
 
 			float x2{x1};
-			float y2{height_map.at((i+1) * width + j)};
+			float y2{height_map.at((i+1) * width + j) * scale};
 			float z2{0.5f + z_offset};
 			vert.push_back(x2);
 			vert.push_back(y2);
 			vert.push_back(z2);
 
 			float x3{0.5f + x_offset};
-			float y3{height_map.at((i+1) * width + j+1)};
+			float y3{height_map.at((i+1) * width + j+1) * scale};
 			float z3{z2};
 			vert.push_back(x3);
 			vert.push_back(y3);
@@ -184,7 +184,7 @@ vector<float> generate_terrain()
 			vert.push_back(z3);
 
 			float x4{x3};
-			float y4{height_map.at(i * width + j+1)};
+			float y4{height_map.at(i * width + j+1) * scale};
 			float z4{z1};
 			vert.push_back(x4);
 			vert.push_back(y4);
@@ -323,7 +323,7 @@ int main()
 
 	float aspect_ratio{static_cast<float>(window_width) / static_cast<float>(window_height)};
 	glm::mat4 proj{glm::perspective(glm::radians(45.0f), aspect_ratio, 0.1f, 1600.0f)};
-	glm::mat4 translate{glm::translate(glm::mat4{1.0f}, glm::vec3(0.0f, -100.0f, -400.0f))};
+	glm::mat4 translate{glm::translate(glm::mat4{1.0f}, glm::vec3(0.0f, 0.0f, -800.0f))};
 	glm::mat4 rot_x{glm::rotate(glm::mat4{1.0f}, 0.8f, glm::vec3{1.0f, 0.0f, 0.0f})};
 
 	glm::mat4 mvp_matrix{proj * translate * rot_x};
