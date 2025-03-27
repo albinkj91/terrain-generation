@@ -17,6 +17,7 @@ using namespace std;
 #define byte unsigned char
 #define window_width 800
 #define window_height 800
+#define perlin_image_width 512
 
 GLuint shader_program;
 GLuint vbo_pos;
@@ -121,9 +122,9 @@ void InitializeProgram()
 	for_each(shaderList.begin(), shaderList.end(), glDeleteShader);
 }
 
-vector<float> read_ppm(string const& file)
+vector<vector<float>> read_ppm(string const& file)
 {
-	vector<float> data{};
+	vector<vector<float>> data{};
 	fstream input{file, ios_base::in};
 	string temp{};
 	getline(input, temp);
@@ -131,45 +132,48 @@ vector<float> read_ppm(string const& file)
 	getline(input, temp);
 
 	float in{};
-	while(input >> in)
+	for(int i{}; i < perlin_image_width; ++i)
 	{
-		data.push_back(in);
-		input >> in >> in;
+		data.push_back(vector<float>{});
+		for(int j{}; j < perlin_image_width; ++j)
+		{
+			input >> in;
+			data.at(i).push_back(in);
+		}
 	}
 	return data;
 }
 
 vector<float> generate_terrain()
 {
-	vector<float> height_map{read_ppm("../perlin/perlin.ppm")};
+	vector<vector<float>> height_map{read_ppm("../perlin/perlin.ppm")};
 
 	vector<float> vert{};
-	int width{512};
 	float scale{200.0};
-	for(int i{}; i < width-1; ++i)
+	for(int i{}; i < perlin_image_width-1; ++i)
 	{
-		for(int j{}; j < width-1; ++j)
+		for(int j{}; j < perlin_image_width-1; ++j)
 		{
 			// Offset values so that center of the terrain is at the origin (0, 0, 0) in model space
-			float x_offset{j - (width)/2.0f};
-			float z_offset{i - (width)/2.0f};
+			float x_offset{j - (perlin_image_width)/2.0f};
+			float z_offset{i - (perlin_image_width)/2.0f};
 
 			float x1{-0.5f + x_offset};
-			float y1{height_map.at(i * width + j) * scale};
+			float y1{height_map.at(i).at(j) * scale};
 			float z1{-0.5f + z_offset};
 			vert.push_back(x1);
 			vert.push_back(y1);
 			vert.push_back(z1);
 
 			float x2{x1};
-			float y2{height_map.at((i+1) * width + j) * scale};
+			float y2{height_map.at(i+1).at(j) * scale};
 			float z2{0.5f + z_offset};
 			vert.push_back(x2);
 			vert.push_back(y2);
 			vert.push_back(z2);
 
 			float x3{0.5f + x_offset};
-			float y3{height_map.at((i+1) * width + j+1) * scale};
+			float y3{height_map.at(i+1).at(j+1) * scale};
 			float z3{z2};
 			vert.push_back(x3);
 			vert.push_back(y3);
@@ -184,7 +188,7 @@ vector<float> generate_terrain()
 			vert.push_back(z3);
 
 			float x4{x3};
-			float y4{height_map.at(i * width + j+1) * scale};
+			float y4{height_map.at(i).at(j+1) * scale};
 			float z4{z1};
 			vert.push_back(x4);
 			vert.push_back(y4);
