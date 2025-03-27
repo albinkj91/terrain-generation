@@ -11,7 +11,7 @@ using namespace std;
 #define img_width 512
 #define cell_width 8
 
-void write_ppm(int const width, int const height, vector<vector<byte>> bytes)
+void write_ppm(int const width, int const height, vector<vector<float>> bytes)
 {
 	fstream output{"perlin.ppm", ios_base::out};
 	output << "P6" << '\n';
@@ -19,9 +19,9 @@ void write_ppm(int const width, int const height, vector<vector<byte>> bytes)
 	output << 255 << '\n';
 
 	for_each(bytes.begin(), bytes.end(),
-			[&output](vector<byte> const& b)
+			[&output](vector<float> const& b)
 			{
-				copy(b.begin(), b.end(), ostream_iterator<byte>(output));
+				copy(b.begin(), b.end(), ostream_iterator<float>{output, " "});
 			});
 }
 
@@ -39,23 +39,20 @@ int main()
 	p4.init();
 	p5.init();
 
-	vector<vector<byte>> bytes{};
+	vector<vector<float>> bytes{};
 	for(int i{}; i < img_width; ++i)
 	{
-		bytes.push_back(vector<byte>{});
+		bytes.push_back(vector<float>{});
 		for(int j{}; j < img_width; ++j)
 		{
 			float added_noise{p.noise_2d(j, i) +
 				p2.noise_2d(j, i)/2.0f +
 				p3.noise_2d(j, i)/4.0f +
 				p4.noise_2d(j, i)/8.0f +
-				p5.noise_2d(j, i)/16.0f -
-				0.5f
+				p5.noise_2d(j, i)/16.0f
 			};
 
-			byte val{static_cast<byte>(added_noise * 255.0f)};
-			bytes.at(i).push_back(val);
-			bytes.at(i).push_back(val);
+			float val{added_noise};
 			bytes.at(i).push_back(val);
 		}
 	}
