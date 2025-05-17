@@ -9,8 +9,6 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
-#include <sstream>
-#include <iterator>
 #include "stb_image.h"
 using namespace std;
 
@@ -24,8 +22,8 @@ GLuint vbo_pos;
 GLuint vbo_norm;
 GLuint vao;
 
-vector<float> vertices{};
-vector<float> normals{};
+vector<glm::vec3> vertices{};
+vector<glm::vec3> normals(perlin_image_width * perlin_image_width);
 
 string load_shader(string const& filename)
 {
@@ -144,106 +142,108 @@ vector<vector<float>> read_ppm(string const& file)
 	return data;
 }
 
-vector<float> generate_terrain()
+glm::vec3 calc_normal(int x, int y, vector<vector<glm::vec3>> const& vertices)
+{
+	glm::vec3 v_up{};
+	glm::vec3 v_down{};
+	glm::vec3 v_right{};
+	glm::vec3 v_left{};
+
+	if(y == 0)
+		v_up = vertices.at(y).at(x);
+	else
+		v_up = vertices.at(y-1).at(x);
+
+	if(x == 0)
+		v_left = vertices.at(y).at(x);
+	else
+		v_left = vertices.at(y).at(x-1);
+
+	if(y == perlin_image_width - 1)
+		v_down = vertices.at(y).at(x);
+	else
+		v_down = vertices.at(y+1).at(x);
+
+	if(x == perlin_image_width - 1)
+		v_right = vertices.at(y).at(x);
+	else
+		v_right = vertices.at(y).at(x+1);
+
+	glm::vec3 v_up_down{v_up - v_down};
+	glm::vec3 v_right_left{v_right - v_left};
+	glm::vec3 normal{normalize(glm::cross(v_up_down, v_right_left))};
+	return normal;
+}
+
+void generate_terrain()
 {
 	vector<vector<float>> height_map{read_ppm("../perlin/perlin.ppm")};
 
-	vector<float> vert{};
 	float scale{200.0};
-	for(int i{}; i < perlin_image_width-1; ++i)
+	vector<vector<glm::vec3>> temp{};
+	for(int i{}; i < perlin_image_width; ++i)
 	{
-		for(int j{}; j < perlin_image_width-1; ++j)
+		temp.push_back(vector<glm::vec3>(perlin_image_width));
+	}
+	
+	// Generate vertices
+	for(int i{}; i < perlin_image_width - 1; ++i)
+	{
+		float z{i - (perlin_image_width)/2.0f};
+		for(int j{}; j < perlin_image_width - 1; ++j)
 		{
 			// Offset values so that center of the terrain is at the origin (0, 0, 0) in model space
-			float x_offset{j - (perlin_image_width)/2.0f};
-			float z_offset{i - (perlin_image_width)/2.0f};
+			float x{j - (perlin_image_width)/2.0f};
 
-			float x1{-0.5f + x_offset};
-			float y1{height_map.at(i).at(j) * scale};
-			float z1{-0.5f + z_offset};
-			vert.push_back(x1);
-			vert.push_back(y1);
-			vert.push_back(z1);
+			glm::vec3 vertex1{x, height_map.at(i).at(j) * scale, z};
+			glm::vec3 vertex2{x, height_map.at(i+1).at(j) * scale, z+1};
+			glm::vec3 vertex3{x+1, height_map.at(i+1).at(j+1) * scale, z+1};
 
-			float x2{x1};
-			float y2{height_map.at(i+1).at(j) * scale};
-			float z2{0.5f + z_offset};
-			vert.push_back(x2);
-			vert.push_back(y2);
-			vert.push_back(z2);
+			vertices.push_back(vertex1);
+			vertices.push_back(vertex2);
+			vertices.push_back(vertex3);
 
-			float x3{0.5f + x_offset};
-			float y3{height_map.at(i+1).at(j+1) * scale};
-			float z3{z2};
-			vert.push_back(x3);
-			vert.push_back(y3);
-			vert.push_back(z3);
+			temp.at(i).at(j) = vertex1;
+			temp.at(i+1).at(j) = vertex2;
+			temp.at(i+1).at(j+1) = vertex3;
 
-			vert.push_back(x1);
-			vert.push_back(y1);
-			vert.push_back(z1);
+			glm::vec3 vertex4{x+1, height_map.at(i).at(j+1) * scale, z};
 
-			vert.push_back(x3);
-			vert.push_back(y3);
-			vert.push_back(z3);
-
-			float x4{x3};
-			float y4{height_map.at(i).at(j+1) * scale};
-			float z4{z1};
-			vert.push_back(x4);
-			vert.push_back(y4);
-			vert.push_back(z4);
-
-			glm::vec3 v1{x1, y1, z1};
-			glm::vec3 v2{x2, y2, z2};
-			glm::vec3 v3{x3, y3, z3};
-			glm::vec3 v4{x4, y4, z4};
-
-			glm::vec3 v3_1{v3 - v1};
-			glm::vec3 v2_1{v2 - v1};
-
-			glm::vec3 cross1{glm::cross(v3_1, v2_1)};
-			cross1 = normalize(cross1);
-
-			normals.push_back(cross1.x);
-			normals.push_back(cross1.y);
-			normals.push_back(cross1.z);
-
-			normals.push_back(cross1.x);
-			normals.push_back(cross1.y);
-			normals.push_back(cross1.z);
-
-			normals.push_back(cross1.x);
-			normals.push_back(cross1.y);
-			normals.push_back(cross1.z);
-
-			glm::vec3 v4_1{v4 - v1};
-			glm::vec3 cross2{glm::cross(v4_1, v3_1)};
-			cross2 = normalize(cross2);
-
-			normals.push_back(cross2.x);
-			normals.push_back(cross2.y);
-			normals.push_back(cross2.z);
-
-			normals.push_back(cross2.x);
-			normals.push_back(cross2.y);
-			normals.push_back(cross2.z);
-
-			normals.push_back(cross2.x);
-			normals.push_back(cross2.y);
-			normals.push_back(cross2.z);
+			vertices.push_back(vertex1);
+			vertices.push_back(vertex3);
+			vertices.push_back(vertex4);
+			temp.at(i).at(j+1) = vertex4;
 		}
 	}
-	return vert;
+
+
+	// Generate normals
+	for(int i{}; i < perlin_image_width - 1; ++i)
+	{
+		for(int j{}; j < perlin_image_width - 1; ++j)
+		{
+			glm::vec3 normal1{calc_normal(j, i, temp)};
+			normals.push_back(normal1);
+			glm::vec3 normal2{calc_normal(j, i+1, temp)};
+			normals.push_back(normal2);
+			glm::vec3 normal3{calc_normal(j+1, i+1, temp)};
+			normals.push_back(normal3);
+
+			glm::vec3 normal4{calc_normal(j+1, i, temp)};
+			normals.push_back(normal1);
+			normals.push_back(normal3);
+			normals.push_back(normal4);
+		}
+	}
 }
 
-void InitializeVertexBuffer(vector<float> const& vertices)
+void InitializeVertexBuffer()
 {
 	glGenVertexArrays(1, &vao);
 	glGenBuffers(1, &vbo_pos);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo_pos);
-	glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(float), vertices.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(glm::vec3), vertices.data(), GL_STATIC_DRAW);
 
 	glBindVertexArray(vao);
 	glVertexAttribPointer(glGetAttribLocation(shader_program, "position"), 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -252,12 +252,12 @@ void InitializeVertexBuffer(vector<float> const& vertices)
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void InitializeNormalBuffer(vector<float> const& normals)
+void InitializeNormalBuffer()
 {
 	glGenBuffers(1, &vbo_norm);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo_norm);
-	glBufferData(GL_ARRAY_BUFFER, normals.size()*sizeof(float), normals.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, normals.size()*sizeof(glm::vec3), normals.data(), GL_STATIC_DRAW);
 
 	glBindVertexArray(vao);
 	glVertexAttribPointer(glGetAttribLocation(shader_program, "normal"), 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -289,16 +289,18 @@ void init()
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 
-	vertices = generate_terrain();
-	InitializeVertexBuffer(vertices);
-	InitializeNormalBuffer(normals);
+	generate_terrain();
+	cout << "Vertex count: " <<  vertices.size() << '\n';
+	cout << "Normal count: " <<  normals.size() << endl;
+	InitializeVertexBuffer();
+	InitializeNormalBuffer();
 }
 
 void display()
 {
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glDrawArrays(GL_TRIANGLES, 0, vertices.size()/3);
+	glDrawArrays(GL_TRIANGLES, 0, vertices.size());
 }
 
 int main()
