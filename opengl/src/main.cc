@@ -171,7 +171,7 @@ glm::vec3 calc_normal(int x, int y, vector<vector<glm::vec3>> const& vertices)
 
 	glm::vec3 v_up_down{v_up - v_down};
 	glm::vec3 v_right_left{v_right - v_left};
-	glm::vec3 normal{normalize(glm::cross(v_up_down, v_right_left))};
+	glm::vec3 normal{normalize(glm::cross(v_right_left, v_up_down))};
 	return normal;
 }
 
@@ -204,7 +204,7 @@ void generate_terrain()
 			vertices.push_back(vertex3);
 
 			temp.at(i).at(j) = vertex1;
-			temp.at(i+1).at(j) = vertex2;
+			temp.at(i).at(j+1) = vertex2;
 			temp.at(i+1).at(j+1) = vertex3;
 
 			glm::vec3 vertex4{x+1, height_map.at(i).at(j+1) * scale, z};
@@ -212,7 +212,7 @@ void generate_terrain()
 			vertices.push_back(vertex1);
 			vertices.push_back(vertex3);
 			vertices.push_back(vertex4);
-			temp.at(i).at(j+1) = vertex4;
+			temp.at(i+1).at(j) = vertex4;
 		}
 	}
 
@@ -296,7 +296,7 @@ void init()
 
 void display()
 {
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClearColor(0.0f, 0.6f, 1.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glDrawArrays(GL_TRIANGLES, 0, vertices.size());
 }
@@ -327,10 +327,15 @@ int main()
 
 	float aspect_ratio{static_cast<float>(window_width) / static_cast<float>(window_height)};
 	glm::mat4 proj{glm::perspective(glm::radians(45.0f), aspect_ratio, 0.1f, 1600.0f)};
+
 	glm::mat4 translate{glm::translate(glm::mat4{1.0f}, glm::vec3(0.0f, 0.0f, -1000.0f))};
 	glm::mat4 rot_x{glm::rotate(glm::mat4{1.0f}, 0.8f, glm::vec3{1.0f, 0.0f, 0.0f})};
 
-	glm::mat4 mvp_matrix{proj * translate * rot_x};
+	glm::mat4 mvp_matrix{translate * rot_x};
+
+	glUniformMatrix4fv(glGetUniformLocation(shader_program, "mat_proj"),
+			1, GL_FALSE, glm::value_ptr(proj));
+
 	glUniformMatrix4fv(glGetUniformLocation(shader_program, "mat_mvp"),
 			1, GL_FALSE, glm::value_ptr(mvp_matrix));
 
