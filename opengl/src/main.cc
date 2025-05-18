@@ -290,8 +290,6 @@ void init()
 	glEnable(GL_DEPTH_TEST);
 
 	generate_terrain();
-	cout << "Vertex count: " <<  vertices.size() << '\n';
-	cout << "Normal count: " <<  normals.size() << endl;
 	InitializeVertexBuffer();
 	InitializeNormalBuffer();
 }
