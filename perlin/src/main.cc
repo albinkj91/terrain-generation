@@ -52,8 +52,9 @@ int main()
 				p5.noise_2d(j, i)/16.0f
 			};
 
-			float val{added_noise};
-			bytes.at(i).push_back(val);
+			if(added_noise < 0.9f)
+				added_noise = 0.9f;
+			bytes.at(i).push_back(added_noise);
 		}
 	}
 	write_ppm(img_width, img_width, bytes);
