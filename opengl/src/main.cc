@@ -296,7 +296,7 @@ void init()
 
 void display()
 {
-	glClearColor(0.0f, 0.6f, 1.0f, 0.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glDrawArrays(GL_TRIANGLES, 0, vertices.size());
 }
