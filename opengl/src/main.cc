@@ -179,7 +179,7 @@ void generate_terrain()
 {
 	vector<vector<float>> height_map{read_ppm("../perlin/perlin.ppm")};
 
-	float scale{150.0};
+	float scale{100.0};
 	vector<vector<glm::vec3>> temp{};
 	for(int i{}; i < perlin_image_width; ++i)
 	{
@@ -328,7 +328,7 @@ int main()
 	float aspect_ratio{static_cast<float>(window_width) / static_cast<float>(window_height)};
 	glm::mat4 proj{glm::perspective(glm::radians(45.0f), aspect_ratio, 0.1f, 1600.0f)};
 
-	glm::mat4 translate{glm::translate(glm::mat4{1.0f}, glm::vec3(0.0f, 0.0f, -1000.0f))};
+	glm::mat4 translate{glm::translate(glm::mat4{1.0f}, glm::vec3(0.0f, 0.0f, -800.0f))};
 	glm::mat4 rot_x{glm::rotate(glm::mat4{1.0f}, 0.8f, glm::vec3{1.0f, 0.0f, 0.0f})};
 
 	glm::mat4 mvp_matrix{translate * rot_x};
