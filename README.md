@@ -1,3 +1,3 @@
-# Perlin Noise with layers
+# Perlin Noise with octaves
 
-Let's see what happens here...
+![Image of generated terrain](/opengl/screenshot.png)
