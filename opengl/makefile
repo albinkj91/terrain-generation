@@ -15,7 +15,7 @@ OBJDIR := obj
 CCC = g++
 
 # Compiling flags
-CCFLAGS +=  -Wno-deprecated-declarations -Wall -Wextra -pedantic -std=c++1z -Weffc++
+CCFLAGS +=  -Wno-deprecated-declarations -Wall -Wextra -pedantic -std=c++1z -Weffc++ -O3
 GLFLAGS += -lGL -lX11 -lpthread -ldl
 GLFWFLAGS += -lglfw -lGL
 

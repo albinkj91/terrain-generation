@@ -5,16 +5,17 @@ out vec3 normalOut;
 out vec3 positionOut;
 out vec4 colorOut;
 
-uniform mat4 mat_mvp;
-uniform mat4 mat_proj;
+uniform mat4 mvp;
+uniform mat4 proj;
+uniform mat4 cam;
 
 void main()
 {
-	gl_Position = mat_proj * mat_mvp * vec4(position, 1.0f);
+	gl_Position = proj * cam * mvp * vec4(position, 1.0f);
 	positionOut = position;
-	normalOut = mat3(mat_mvp) * normal;
+	normalOut = mat3(mvp) * normal;
 
-	if(positionOut.y > 110)
+	if(position.y > 110)
 		colorOut = vec4(0.7f, 0.7f, 0.7f, 1.0f);
 	else
 		colorOut = vec4(0.0f, 0.4f, 0.3f, 1.0f);

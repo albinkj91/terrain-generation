@@ -25,6 +25,18 @@ GLuint vao;
 vector<glm::vec3> vertices{};
 vector<glm::vec3> normals{};
 
+glm::vec3 cam_pos{0, 0, 3};
+glm::vec3 cam_dir{0, 0, -1};
+glm::vec3 cam_up{0, 1, 0};
+glm::mat4 camera{glm::lookAt(cam_pos, cam_dir, cam_up)};
+
+float last_mouse_pos_x{window_width/2.f};
+float last_mouse_pos_y{window_height/2.f};
+
+float yaw{};
+float pitch{};
+float sensitivity{0.05f};
+
 string load_shader(string const& filename)
 {
 	string shader{};
@@ -296,9 +308,57 @@ void init()
 
 void display()
 {
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClearColor(0.0f, 0.2f, 0.4f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+}
+
+void key_callback(GLFWwindow*, int key, int scancode, int action, int mods)
+{
+	if(key == GLFW_KEY_W && (action == GLFW_PRESS || GLFW_REPEAT))
+	{
+		cam_pos -= cam_dir;
+		cam_dir = cam_pos + cam_dir;
+	}
+	else if(key == GLFW_KEY_S && (action == GLFW_PRESS || GLFW_REPEAT))
+	{
+		cam_pos += glm::vec3{0, 0, 10};
+		cam_dir = cam_pos + glm::vec3{0, 0, -1};
+	}
+	if(key == GLFW_KEY_A && (action == GLFW_PRESS || action == GLFW_REPEAT))
+	{
+		cam_pos -= glm::vec3(10, 0, 0);
+		cam_dir = cam_pos + glm::vec3{0, 0, -1};
+	}
+	if(key == GLFW_KEY_D && (action == GLFW_PRESS || action == GLFW_REPEAT))
+	{
+		cam_pos += glm::vec3(10, 0, 0);
+		cam_dir = cam_pos + glm::vec3{0, 0, -1};
+	}
+
+	camera = glm::lookAt(cam_pos, cam_dir, cam_up);
+	glUniformMatrix4fv(glGetUniformLocation(shader_program, "cam"),
+			1, GL_FALSE, glm::value_ptr(camera));
+}
+
+void cursor_position_callback(GLFWwindow*, double xpos, double ypos)
+{
+	float x{static_cast<float>(xpos) - last_mouse_pos_x};
+	float y{-(static_cast<float>(ypos) - last_mouse_pos_y)};
+	last_mouse_pos_x = xpos;
+	last_mouse_pos_y = ypos;
+
+	yaw += x * sensitivity;
+	pitch += y * sensitivity;
+
+	cam_dir.x = cos(glm::radians(yaw) * cos(glm::radians(pitch)));
+	cam_dir.y = sin(glm::radians(pitch));
+	cam_dir.z = sin(glm::radians(yaw) * cos(glm::radians(pitch)));
+	cam_dir = cam_pos + glm::normalize(cam_dir);
+
+	camera = glm::lookAt(cam_pos, cam_dir, cam_up);
+	glUniformMatrix4fv(glGetUniformLocation(shader_program, "cam"),
+			1, GL_FALSE, glm::value_ptr(camera));
 }
 
 int main()
@@ -313,6 +373,11 @@ int main()
 			window_height, "Playground", NULL, NULL);
 
 	glfwSetWindowAspectRatio(window, window_width, window_height);
+	glfwSetKeyCallback(window, key_callback);
+	glfwSetCursorPosCallback(window, cursor_position_callback);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	if (glfwRawMouseMotionSupported())
+		glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
 
 	if(!window)
 	{
@@ -333,10 +398,13 @@ int main()
 
 	glm::mat4 mvp_matrix{translate * rot_x};
 
-	glUniformMatrix4fv(glGetUniformLocation(shader_program, "mat_proj"),
+	glUniformMatrix4fv(glGetUniformLocation(shader_program, "cam"),
+			1, GL_FALSE, glm::value_ptr(camera));
+
+	glUniformMatrix4fv(glGetUniformLocation(shader_program, "proj"),
 			1, GL_FALSE, glm::value_ptr(proj));
 
-	glUniformMatrix4fv(glGetUniformLocation(shader_program, "mat_mvp"),
+	glUniformMatrix4fv(glGetUniformLocation(shader_program, "mvp"),
 			1, GL_FALSE, glm::value_ptr(mvp_matrix));
 
 	while (!glfwWindowShouldClose(window))
